@@ -19,6 +19,3 @@ int main() {
   BotParser parser(botStarter);
   parser.Run();
 }
-//tita
-//tita2
-//tita3
