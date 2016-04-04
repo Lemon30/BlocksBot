@@ -9,6 +9,7 @@
 
 #include "bot-state.h"
 #include "move.h"
+#include "prediction.h"
 
 using namespace std;
 
@@ -24,21 +25,37 @@ class BotStarter {
    * @param timeout : time to respond
    * @return : a list of moves to execute
    */
-  vector<Move::MoveType> GetMoves(const BotState& state,
-                                  long long timeout) const {
-    vector<Move::MoveType> moves;
-    int nrOfMoves = rand() % 41 + 1;
+     vector<Move::MoveType> GetMoves(const BotState& state,
+         long long timeout) const {
+         vector<Move::MoveType> moves;
+         if (state.CurrentShape() == Shape::ShapeType::I) {
+         //if (state.MyField().GetAggregateHeight() <= 4) {
+             moves.push_back(Move::MoveType::LEFT);
+             moves.push_back(Move::MoveType::LEFT);
+             moves.push_back(Move::MoveType::LEFT);
+         }
+         else if (state.CurrentShape() == Shape::ShapeType::S || state.CurrentShape() == Shape::ShapeType::Z) {
 
-    for (int n = 0; n < nrOfMoves; ++n) {
-      Move::MoveType randomMove =
-          static_cast<Move::MoveType>(rand() % Move::MoveType::LAST);
-      if (randomMove != Move::MoveType::DROP) {
-        moves.push_back(randomMove);
-      }
-    }
-    moves.push_back(Move::MoveType::DROP);
-    return moves;
-  }
+         } else {
+             moves.push_back(Move::MoveType::RIGHT);
+             moves.push_back(Move::MoveType::RIGHT);
+             moves.push_back(Move::MoveType::RIGHT);
+         }
+
+         moves.push_back(Move::MoveType::DROP);
+         return moves;
+     }
 };
 
 #endif  //__BOT_STARTER_H
+
+/*int nrOfMoves = rand() % 41 + 1;
+
+for (int n = 0; n < nrOfMoves; ++n) {
+Move::MoveType randomMove =
+static_cast<Move::MoveType>(rand() % Move::MoveType::LAST);
+if (randomMove != Move::MoveType::DROP) {
+moves.push_back(randomMove);
+}
+}
+moves.push_back(Move::MoveType::DROP); */

@@ -24,6 +24,7 @@ class Field {
       : width_(width), height_(height), grid_(width * height) {
     int x = 0;
     int y = 0;
+    aggregate_height_ = 0;
     const char* strPos = fieldStr.c_str();
 
     while (strPos < fieldStr.c_str() + fieldStr.size()) {
@@ -49,6 +50,21 @@ class Field {
       }
       strPos++;
     }
+
+    //Calculate total aggregate height of the field
+    for (int i = 0; i < width_; i++) {
+        for (int j = height_-1; j > 0; j--) {
+            const Cell& field_cell = GetCell(i, j);
+            if (!field_cell.IsEmpty()) {
+                SetAggregateHeight(aggregate_height_ + j);
+                break;
+            }
+        }
+    }
+  }
+
+  bool checkOneDown() {
+      
   }
 
   bool IsOutOfBounds(const Cell& c) {
@@ -61,6 +77,10 @@ class Field {
             (field_cell.IsSolid() || field_cell.IsBlock()));
   }
 
+  int GetAggregateHeight() const { return aggregate_height_; }
+
+  void SetAggregateHeight(int val) { aggregate_height_ = val; }
+
   const Cell& GetCell(int x, int y) const { return grid_[y * width_ + x]; }
 
   int width() const { return width_; }
@@ -70,6 +90,7 @@ class Field {
  private:
   int width_;
   int height_;
+  int aggregate_height_;
   vector<Cell> grid_;
 };
 
