@@ -153,7 +153,6 @@
     <ClInclude Include="..\field.h" />
     <ClInclude Include="..\move.h" />
     <ClInclude Include="..\player.h" />
-    <ClInclude Include="..\prediction.h" />
     <ClInclude Include="..\shape.h" />
     <ClInclude Include="..\util.h" />
   </ItemGroup>

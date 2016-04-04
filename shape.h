@@ -84,33 +84,6 @@ class Shape {
     return true;
   }
 
-  Shape ghost() {
-      Shape newShape(type_, field_, x_, y_);
-      int counter = 0;
-
-      // in case the cloned shape was rotated copy the cells to clone this change
-      for (int j = 0; j < size_; j++) {
-          for (int i = 0; i < size_; i++) {
-              switch (shape_[i][j].getState()) {
-                case ' ': //EMPTY
-                    newShape.shape_[i][j].IsEmpty();
-                    break;
-                case '+': //Shape
-                    newShape.shape_[i][j].IsShape();
-                    newShape.blocks_[counter] = &newShape.shape_[i][j];
-                    counter++;
-                    break;
-                case '#': //BLOCK
-                    newShape.shape_[i][j].IsBlock();
-                    break;
-                case '-': //SOLID
-                    newShape.shape_[i][j].IsSolid();
-                    break;
-              }
-          }
-      }
-  }
-
   // ACTIONS (no checks for errors are performed in the actions!)
 
   /**

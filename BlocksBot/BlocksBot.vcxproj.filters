@@ -42,9 +42,6 @@
     <ClInclude Include="..\bot-state.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\prediction.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\main.cpp">
