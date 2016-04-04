@@ -6,9 +6,6 @@
 #include <string>
 #include <vector>
 
-#include "bot-state.h"
-#include "move.h"
-#include "shape.h"
 
 using namespace std;
 /**

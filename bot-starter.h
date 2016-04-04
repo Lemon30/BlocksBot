@@ -25,7 +25,38 @@ class BotStarter {
    * @param timeout : time to respond
    * @return : a list of moves to execute
    */
-     vector<Move::MoveType> GetMoves(const BotState& state,
+
+     vector<Move::MoveType> GetMoves(const BotState& state,         
+         long long timeout) const {
+            vector<Move::MoveType> moves;
+             int bestscore = -1000;
+             Shape newShape(state.CurrentShape(), state.MyField(), 
+                 state.ShapeLocation().first, state.ShapeLocation().second);
+             
+                 //For every rotation
+             for (int rotation = 0; rotation < 4; rotation++) {
+                 int left = 0;
+                 //Don't rotate for the first time around
+                 if (rotation != 0) {
+                     newShape.TurnRight();
+                 }
+
+                 Shape ghostShape = newShape.ghost();
+                 Field newField = state.MyField();
+                 bool checked = newField.checkOneLeft(ghostShape);
+                 while (checked) {
+                     ghostShape.OneLeft();
+                     left++;
+                 }
+
+             }
+             moves.push_back(Move::MoveType::DROP);
+             return moves;
+     }
+     
+     
+
+     /*vector<Move::MoveType> GetMoves(const BotState& state,
          long long timeout) const {
          vector<Move::MoveType> moves;
          if (state.CurrentShape() == Shape::ShapeType::I) {
@@ -44,7 +75,7 @@ class BotStarter {
 
          moves.push_back(Move::MoveType::DROP);
          return moves;
-     }
+     }*/
 };
 
 #endif  //__BOT_STARTER_H

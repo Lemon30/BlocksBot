@@ -93,22 +93,24 @@ class Shape {
           for (int i = 0; i < size_; i++) {
               switch (shape_[i][j].getState()) {
                 case ' ': //EMPTY
-                    newShape.shape_[i][j].IsEmpty();
+                    newShape.shape_[i][j].setEmpty();
                     break;
                 case '+': //Shape
-                    newShape.shape_[i][j].IsShape();
+                    newShape.shape_[i][j].setShape();
                     newShape.blocks_[counter] = &newShape.shape_[i][j];
                     counter++;
                     break;
                 case '#': //BLOCK
-                    newShape.shape_[i][j].IsBlock();
+                    newShape.shape_[i][j].setBlock();
                     break;
                 case '-': //SOLID
-                    newShape.shape_[i][j].IsSolid();
+                    newShape.shape_[i][j].setSolid();
                     break;
               }
           }
       }
+      newShape.SetBlockLocations();
+      return newShape;
   }
 
   // ACTIONS (no checks for errors are performed in the actions!)

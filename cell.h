@@ -52,6 +52,22 @@ class Cell {
     return "?";
   }
 
+  void setShape() {
+      state_ = SHAPE;
+  }
+
+  void setBlock() {
+      state_ = BLOCK;
+  }
+
+  void setEmpty() {
+      state_ = EMPTY;
+  }
+
+  void setSolid() {
+      state_ = SOLID;
+  }
+
   bool IsShape() const { return state_ == SHAPE; }
 
   bool IsSolid() const { return state_ == SOLID; }

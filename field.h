@@ -11,6 +11,7 @@
 
 #include "cell.h"
 
+
 using namespace std;
 
 /**
@@ -63,8 +64,12 @@ class Field {
     }
   }
 
-  bool checkOneDown() {
-      
+  bool checkOneLeft(Shape &newShape) {
+      //Shape test = newShape.ghost();
+      //test.OneLeft();
+      //Cell[] tempBlocks = test.getBlocks();
+      //const vector<Cell*> GetBlocks() const { return blocks_; }
+      return true;
   }
 
   bool IsOutOfBounds(const Cell& c) {
@@ -75,6 +80,32 @@ class Field {
     const Cell& field_cell = GetCell(block_cell.x(), block_cell.y());
     return (block_cell.IsShape() &&
             (field_cell.IsSolid() || field_cell.IsBlock()));
+  }
+
+  Field copyField() {
+      string board = "";
+
+      for (int i = 0; i < height_; i++) {
+          for (int j = 0; j < height_; j++) {
+              Cell::CellState stat = grid_[j * width_ + i].getState();
+              switch (stat) {
+              case ' ': //EMPTY
+                  board = board + "0,";
+                  break;
+              case '+': //Shape
+                  board = board + "1,";
+                  break;
+              case '#': //BLOCK
+                  board = board + "2,";
+                  break;
+              case '-': //SOLID
+                  board = board + "3,";
+                  break;
+              }
+          }
+          board = board + ";";
+      }
+      return Field(width_, height_, board);
   }
 
   int GetAggregateHeight() const { return aggregate_height_; }
