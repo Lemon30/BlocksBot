@@ -66,6 +66,10 @@ class Cell {
     state_ = (CellState)state;
   }
 
+  CellState getState() {
+      return state_;
+  }
+
   int x() const { return x_; }
 
   int y() const { return y_; }
