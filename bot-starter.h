@@ -28,48 +28,19 @@ class BotStarter {
 
      vector<Move::MoveType> GetMoves(const BotState& state,
          long long timeout) const {
-             vector<Move::MoveType> moves;
-             int bestscore = -1000;
-             Shape newShape(state.CurrentShape(), state.MyField(), 
-                 state.ShapeLocation().first, state.ShapeLocation().second);
+        vector<Move::MoveType> moves;
+             
+        Shape newShape(state.CurrentShape(), state.MyField(), 
+            state.ShapeLocation().first, state.ShapeLocation().second);
 
-            //For every rotation
-            for (int rotation = 0; rotation < 4; rotation++) {
-                int left = 0;
-                //Don't rotate for the first time around
-                if (rotation != 0) {
-                    newShape.TurnRight();
-                }
-                
-                // Move the rotated shape all the way to the left until it can't be moved
-                Shape ghostShape = newShape.ghost();
-                Field newField = state.MyField();
-                while (newShape.checkOneLeft(newField)) {
-                    ghostShape.OneLeft();
-                    left++;
-                }
-                
-                // Until the grid is valid (until the piece is moved all the way to the right)
-                /*while (ghostShape.IsValid()) {
-                    Shape newGhost = ghostShape.ghost();
+        Field newField = state.MyField();
 
-                    // Move the piece all the way down
-                    while (newGhost.checkOneDown(newField)) {
-                        newGhost.OneDown();
-                    }
-
-                    //replace with height checker
-                    if (1) {
-                        int score;
-                        int totalPoints;
-
-                        Field ghostField = newField.copyField();
-                        ghostShape.addGhostShape(ghostField);
-                    }
-                }*/
-            left--;
-            ghostShape.OneRight();
-        }
+        BotStarter bot;
+        int a = bot.bestMove(newField, newShape);
+        if (a==-1000)
+            moves.push_back(Move::MoveType::RIGHT);
+        else if (a == -500)
+            moves.push_back(Move::MoveType::LEFT);
         moves.push_back(Move::MoveType::DROP);
         return moves;
      }
@@ -96,6 +67,49 @@ class BotStarter {
          moves.push_back(Move::MoveType::DROP);
          return moves;
      }*/
+
+     int bestMove(Field &newField, Shape &newShape) {
+         int bestscore = -1000;
+
+         //For every rotation
+         for (int rotation = 0; rotation < 4; rotation++) {
+             int left = 0;
+             //Don't rotate for the first time around
+             if (rotation != 0) {
+                 newShape.TurnRight();
+             }
+             
+             // Move the rotated shape all the way to the left until it can't be moved
+             Shape ghostShape = newShape.ghost();
+
+             /*while (newShape.checkOneLeft(newField)) {
+                 ghostShape.OneLeft();
+                 left++;
+             }
+             
+             // Until the grid is valid (until the piece is moved all the way to the right)
+             while (ghostShape.IsValid()) {
+             Shape newGhost = ghostShape.ghost();
+
+             // Move the piece all the way down
+             while (newGhost.checkOneDown(newField)) {
+             newGhost.OneDown();
+             }
+
+             //replace with height checker
+             if (1) {
+             int score;
+             int totalPoints;
+
+             Field ghostField = newField.copyField();
+             ghostShape.addGhostShape(ghostField);
+             }
+             }*/
+             left--;
+             ghostShape.OneRight();
+         }
+         return bestscore;
+     }
 };
 
 #endif  //__BOT_STARTER_H
