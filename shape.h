@@ -115,7 +115,7 @@ class Shape {
 
   bool checkOneLeft(Field &board) {
       Shape test = ghost();
-      test.OneLeft();
+      test.OneLeft();/*
       vector<Cell*> tempBlocks;
       tempBlocks = test.getBlocks();
       for (const Cell* cell : tempBlocks) {
@@ -127,7 +127,8 @@ class Shape {
               return false;
           }
       }
-      return true;
+      return true;*/
+      return test.IsValid();
   }
 
   bool checkOneDown(Field &Field) {
