@@ -64,13 +64,7 @@ class Field {
     }
   }
 
-  bool checkOneLeft(Shape &newShape) {
-      //Shape test = newShape.ghost();
-      //test.OneLeft();
-      //Cell[] tempBlocks = test.getBlocks();
-      //const vector<Cell*> GetBlocks() const { return blocks_; }
-      return true;
-  }
+  
 
   bool IsOutOfBounds(const Cell& c) {
     return c.x() >= width_ || c.x() < 0 || c.y() >= height_ || c.y() < 0;
@@ -80,6 +74,13 @@ class Field {
     const Cell& field_cell = GetCell(block_cell.x(), block_cell.y());
     return (block_cell.IsShape() &&
             (field_cell.IsSolid() || field_cell.IsBlock()));
+  }
+
+  void setCell(const Cell& cell) {
+      if (cell.x() < 0 || cell.x() >= width_ || cell.y() < 0 || cell.y() >= height_) {
+          return;
+      }
+      grid_[cell.y() * width_ + cell.x()].setBlock();
   }
 
   Field copyField() {

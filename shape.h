@@ -113,6 +113,47 @@ class Shape {
       return newShape;
   }
 
+  bool checkOneLeft(Field &board) {
+      Shape test = ghost();
+      test.OneLeft();
+      vector<Cell*> tempBlocks;
+      tempBlocks = test.getBlocks();
+      for (const Cell* cell : tempBlocks) {
+          if (cell == nullptr) {
+              return false;
+          }
+          const Cell& c = *cell;
+          if (board.HasCollision(c)) {
+              return false;
+          }
+      }
+      return true;
+  }
+
+  bool checkOneDown(Field &Field) {
+      Shape test = ghost();
+      test.OneDown();
+      vector<Cell*> tempBlocks;
+      tempBlocks = test.getBlocks();
+      for (const Cell* cell : tempBlocks) {
+          if (cell == nullptr) {
+              return false;
+          }
+          const Cell& c = *cell;
+          if (Field.HasCollision(c)) {
+              return false;
+          }
+      }
+      return true;
+  }
+
+  void addGhostShape(Field &Field) {
+      for (const Cell* cell : getBlocks()) {
+          const Cell& c = *cell;
+          Field.setCell(c);
+      }
+  }
+
   // ACTIONS (no checks for errors are performed in the actions!)
 
   /**
@@ -360,6 +401,8 @@ class Shape {
       blocks_[i]->set_state(Cell::CellState::SHAPE);
     }
   }
+
+  vector<Cell*> getBlocks() { return blocks_; }
 
   /**
    * Creates the matrix for the shape_

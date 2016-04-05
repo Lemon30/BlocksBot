@@ -26,32 +26,52 @@ class BotStarter {
    * @return : a list of moves to execute
    */
 
-     vector<Move::MoveType> GetMoves(const BotState& state,         
+     vector<Move::MoveType> GetMoves(const BotState& state,
          long long timeout) const {
-            vector<Move::MoveType> moves;
+             vector<Move::MoveType> moves;
              int bestscore = -1000;
              Shape newShape(state.CurrentShape(), state.MyField(), 
                  state.ShapeLocation().first, state.ShapeLocation().second);
-             
-                 //For every rotation
-             for (int rotation = 0; rotation < 4; rotation++) {
-                 int left = 0;
-                 //Don't rotate for the first time around
-                 if (rotation != 0) {
-                     newShape.TurnRight();
-                 }
 
-                 Shape ghostShape = newShape.ghost();
-                 Field newField = state.MyField();
-                 bool checked = newField.checkOneLeft(ghostShape);
-                 while (checked) {
-                     ghostShape.OneLeft();
-                     left++;
-                 }
+            //For every rotation
+            for (int rotation = 0; rotation < 4; rotation++) {
+                int left = 0;
+                //Don't rotate for the first time around
+                if (rotation != 0) {
+                    newShape.TurnRight();
+                }
+                
+                // Move the rotated shape all the way to the left until it can't be moved
+                Shape ghostShape = newShape.ghost();
+                Field newField = state.MyField();
+                while (newShape.checkOneLeft(newField)) {
+                    ghostShape.OneLeft();
+                    left++;
+                }
+                
+                // Until the grid is valid (until the piece is moved all the way to the right)
+                /*while (ghostShape.IsValid()) {
+                    Shape newGhost = ghostShape.ghost();
 
-             }
-             moves.push_back(Move::MoveType::DROP);
-             return moves;
+                    // Move the piece all the way down
+                    while (newGhost.checkOneDown(newField)) {
+                        newGhost.OneDown();
+                    }
+
+                    //replace with height checker
+                    if (1) {
+                        int score;
+                        int totalPoints;
+
+                        Field ghostField = newField.copyField();
+                        ghostShape.addGhostShape(ghostField);
+                    }
+                }*/
+            left--;
+            ghostShape.OneRight();
+        }
+        moves.push_back(Move::MoveType::DROP);
+        return moves;
      }
      
      
