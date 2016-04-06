@@ -89,7 +89,7 @@ class Shape {
       int counter = 0;
 
       // in case the cloned shape was rotated copy the cells to clone this change
-      for (int j = 0; j < size_; j++) {
+      /* for (int j = 0; j < size_; j++) {
           for (int i = 0; i < size_; i++) {
               switch (shape_[i][j].getState()) {
                 case ' ': //EMPTY
@@ -108,8 +108,8 @@ class Shape {
                     break;
               }
           }
-      }
-      newShape.SetBlockLocations();
+      } 
+      newShape.SetBlockLocations(); */
       return newShape;
   }
 

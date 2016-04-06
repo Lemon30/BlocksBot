@@ -41,6 +41,8 @@ class BotStarter {
             moves.push_back(Move::MoveType::RIGHT);
         else if (a == -500)
             moves.push_back(Move::MoveType::LEFT);
+        else if (a == -100)
+            moves.push_back(Move::MoveType::LEFT);
         moves.push_back(Move::MoveType::DROP);
         return moves;
      }
@@ -81,10 +83,14 @@ class BotStarter {
              
              // Move the rotated shape all the way to the left until it can't be moved
              Shape ghostShape = newShape.ghost();
-
-             while (newShape.checkOneLeft()) {
+             
+             int count = 5;
+             while (newShape.checkOneLeft() || count > 0) {
                  ghostShape.OneLeft();
+                 if( ghostShape.x() < 0 )
+                    bestscore = -500;
                  left++;
+                 count--;
              }
              
              /*
