@@ -113,21 +113,10 @@ class Shape {
       return newShape;
   }
 
-  bool checkOneLeft(Field &board) {
-      Shape test = ghost();
-      test.OneLeft();/*
-      vector<Cell*> tempBlocks;
-      tempBlocks = test.getBlocks();
-      for (const Cell* cell : tempBlocks) {
-          if (cell == nullptr) {
-              return false;
-          }
-          const Cell& c = *cell;
-          if (board.HasCollision(c)) {
-              return false;
-          }
-      }
-      return true;*/
+  bool checkOneLeft() {
+      Shape test = this->ghost();
+      test.OneLeft();
+      
       return test.IsValid();
   }
 

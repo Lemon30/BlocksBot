@@ -82,11 +82,12 @@ class BotStarter {
              // Move the rotated shape all the way to the left until it can't be moved
              Shape ghostShape = newShape.ghost();
 
-             /*while (newShape.checkOneLeft(newField)) {
+             while (newShape.checkOneLeft()) {
                  ghostShape.OneLeft();
                  left++;
              }
              
+             /*
              // Until the grid is valid (until the piece is moved all the way to the right)
              while (ghostShape.IsValid()) {
              Shape newGhost = ghostShape.ghost();
