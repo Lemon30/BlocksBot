@@ -80,12 +80,33 @@ class Field {
   }
 
   bool IsOk(const Cell& c) const {
-      if (c.x() >= width_ || c.x() < 0 || c.y() >= height_ || c.y() < 0)
-          return false;
-      const Cell& field_cell = GetCell(c.x(), c.y());
-      if (field_cell.IsSolid() || field_cell.IsBlock())
-          return false;
-      return true;
+        if (c.x() >= width_) {
+            //cerr << "is too right ";
+            return false;
+        }
+        if (c.x() < 0) {
+            //cerr << " is too left ";
+            return false;
+        }
+        if (c.y() >= height_) {// || c.y() < 0
+            //cerr << " is too down ";
+            return false;
+        }
+        if (c.y() < 0) {
+            //cerr << " is too high but I'll allow.";
+            return true;
+        }
+        const Cell& field_cell = GetCell(c.x(), c.y());
+        //cerr << " (" << field_cell.AsString() << ") ";
+        if (field_cell.IsSolid()) {
+            //cerr << " is solid ";
+            return false;
+        }
+        if (field_cell.IsBlock()) {
+            //cerr << " is block ";
+            return false;
+        }    
+        return true;
   }
 
   bool IsOutOfBounds(const Cell& c) const {
@@ -102,7 +123,7 @@ class Field {
   void SetCell(int x, int y) {
       if (x < 0 || x >= width_ || y < 0 || y >= height_)
           return;
-      grid_[y * width_ + x].set_state(2);
+      grid_[y * width_ + x].set_state(Cell::CellState::BLOCK);
       
   }
 

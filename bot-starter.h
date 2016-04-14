@@ -6,6 +6,7 @@
 
 #include <cstdlib>
 #include <vector>
+#include <math.h>
 
 #include "bot-state.h"
 #include "move.h"
@@ -28,91 +29,102 @@ class BotStarter {
                                   long long timeout) const {
     vector<Move::MoveType> moves;
 
-    Shape::ShapeType blockType = state.CurrentShape();
-    Field field = state.MyField();
-    Shape newShape(blockType, field, state.ShapeLocation().first, state.ShapeLocation().second);
-    
-    newShape.OneDown();
-    newShape.OneDown();
-    moves.push_back(Move::MoveType::DOWN);
-    moves.push_back(Move::MoveType::DOWN);
+    Field field = state.MyField(); // Sahan?n durumunu ö?ren
+    Shape newShape(state.CurrentShape(), field, state.ShapeLocation().first, state.ShapeLocation().second); //Gelen ?ekli yarat
 
-    int left = 0;
-    Shape testShapeLeft(blockType, field, newShape.x(), newShape.y());
-    while (testShapeLeft.IsOk()) {
-        left++;
-        testShapeLeft.OneLeft();
-    }
-    left--;
+    /*
+    //Field checker copy pasta
+    for (int i = 0; i < field.height(); i++) {
+        for (int j = 0; j < field.width(); j++) {
+            cerr << "|" << field.GetCell(j, i).AsString();
+        }
+        cerr << "|" << endl;
+    }*/
+
+    if (newShape.IsOk())
+        cerr << "MOVING LEFT " << endl;
+
+    Shape testShapeLeft(state.CurrentShape(), field, newShape.x(), newShape.y()); //?eklin kopyas?n? yarat
     
-    while (left > 0) {
-        left--;
+    int testLeftMoves = checkMove(&testShapeLeft, 'l'); //Kaç kere sola gidebilir?
+    cerr << "Block can move left " << testLeftMoves << " times." << endl;
+
+    for (int i = 0; i < testLeftMoves; i++) {
+        newShape.OneLeft();
         moves.push_back(Move::MoveType::LEFT);
     }
 
+    tita t = findBestMove(field, &newShape, state.CurrentShape());
+    cerr << "Block should move right " << t.right << " times for the best move." << endl;
 
-    int bestrights = findBestMove(field, &newShape);
-
-    while (bestrights > 0) {
+    while (t.right > 0) {
         moves.push_back(Move::MoveType::RIGHT);
-        bestrights--;
+        t.right--;
+    }
+
+    while (t.rotation > 0) {
+        moves.push_back(Move::MoveType::TURNRIGHT);
+        t.rotation--;
     }
 
     moves.push_back(Move::MoveType::DROP);
     return moves;
   }
 
-  int findBestMove(Field field, Shape *shape) const {
+  struct tita {
+      int rotation;
+      int right;
+  };
+
+  tita findBestMove(Field field, Shape *shape, Shape::ShapeType shapetype) const {      
+      int totalRotations = 0;
       int rotations = 0;
       int bestscore = -999999;
       int totalRights = 0;
-      int oldRight;
 
-      while (rotations < 1) {
-          int right = 0;
-          Shape testShapeRight(shape->type(), field, shape->x(), shape->y());
-          while (testShapeRight.IsOk()) {
-              right++;
-              testShapeRight.OneRight();
-          }
-          right--;
-          oldRight = right;
-          while (right > 0) {
+      while (rotations < 4) {
+          
+          cerr << "Testing block for " << rotations << "th rotation." << endl;
+          Shape testShapeRight(shapetype, field, shape->x(), shape->y());
+          int testRightMoves = checkMove(&testShapeRight, 'r');
+          for (int r = 0; r < rotations; r++)
+              testShapeRight.TurnRight();
+          cerr << "Block can move right a total of " << testRightMoves << " times." << endl;
+          while (testRightMoves >= 0) {
+              cerr << "Block will move right " << testRightMoves << " times to test." << endl;
               Field newField(field.width(), field.height(), field.copyField());
-              Shape ghostShape(shape->type(), field, shape->x(), shape->y());
-              Shape testShapeDown(shape->type(), field, shape->x(), shape->y());
-              cerr << "Moving right " << oldRight - right << " times." << endl;
-              for (int i = 0; i < oldRight - right; i++) {
+              Shape ghostShape(shapetype, field, shape->x(), shape->y());
+              for (int r = 0; r < rotations; r++)
+                  ghostShape.TurnRight();
+              for (int i = 0; i < testRightMoves; i++) {
                   ghostShape.OneRight();
-                  testShapeDown.OneRight();
               }
-              int down = 0;
-              while (testShapeDown.IsOk()) {
-                  down++;
-                  testShapeDown.OneDown();
-              }
-              down--;
-              cerr << "Tested down. This piece has to move down " << down << " times." << endl;
-                  while (down > 0) {
+              Shape testShapeDown(shapetype, field, ghostShape.x(), ghostShape.y());
+              for (int r = 0; r < rotations; r++)
+                  testShapeDown.TurnRight();
+              int testDownMoves = checkMove(&testShapeDown, 'd');
+              cerr << "Tested down. This piece has to move down " << testDownMoves << " times." << endl;
+              for (int i = 0; i < testDownMoves; i++) {
                   ghostShape.OneDown();
-                  down--;
               }
               for (const Cell* cell : ghostShape.GetBlocks()) {
                   const Cell& c = *cell;
                   newField.SetCell(c.x(), c.y());
               }
               int score = evaluate(&newField);
-              cerr << "Evaluating option with score: " << score << " as " << oldRight-right << "th test. " << endl;
               if (score > bestscore) {
                   bestscore = score;
-                  totalRights = oldRight - right;
+                  totalRights = testRightMoves;
+                  totalRotations = rotations;
               }
-              right--;
+              testRightMoves--;
           }
           rotations++;
       }
-      cerr << "Selected option with score: " << bestscore << " after " << oldRight << " tests. " << endl;
-      return totalRights;
+      tita t;
+      t.right = totalRights;
+      t.rotation = totalRotations;
+      return t;
   }
 
   int evaluate(Field *field) const {
@@ -120,12 +132,11 @@ class BotStarter {
       
       int aggregateHeight = 0;
       for (int i = 0; i < field->width(); i++) {
-          for (int j = field->height()-1; j > 0; j--) {
-              cerr << " Checking cell x: " << i << " y: " << j;
+          for (int j = 0; j < field->height(); j++) {
               if (field->GetCell(i, j).state() == Cell::CellState::BLOCK || field->GetCell(i, j).state() == Cell::CellState::SOLID) {
-                  aggregateHeight = aggregateHeight + j;
-                  cerr << "Agg is now: " << aggregateHeight << endl;
-                  j = 0;
+                  //cerr << "Agg height starts at " << field->height()-j << " for the " << i << "th column." << endl;
+                  aggregateHeight = aggregateHeight + field->height() - j;
+                  j = field->height();
               }
           }
       }
@@ -145,8 +156,8 @@ class BotStarter {
       int holes = 0;
       for (int i = 0; i < field->width(); i++) {
           bool startChecking = false;
-          for (int j = field->height(); j > 0; j--) {
-              if (field->GetCell(i, j).state() != Cell::CellState::EMPTY) {
+          for (int j = 0; j < field->height(); j++) {
+              if (field->GetCell(i, j).state() == Cell::CellState::BLOCK) {
                   if (!startChecking)
                       startChecking = true;
               }
@@ -156,30 +167,47 @@ class BotStarter {
       }
 
       int bumpiness = 0;
-      int c1 = -1;
-      int c2 = -1;
+      int heights[10] = {0};
       for (int i = 0; i < field->width(); i++) {
-          for (int j = field->height(); j > 0; j--) {
-              if (field->GetCell(i, j).state() != Cell::CellState::EMPTY) {
-                  if (c1 < 0 && c2 < 0)
-                      c1 = j;
-                  else if (c1 >= 0 && c2 < 0) {
-                      c2 = j;
-                      bumpiness = bumpiness + (c2 - c1);
-                      c1 = j;                        
-                  }
-                  else if (c1 >= 0 && c2 >= 0) {
-                      c2 = j;
-                      bumpiness = bumpiness + (c2 - c1);
-                      c1 = j;
-                  }
+          for (int j = 0; j < field->height(); j++) {
+              if (field->GetCell(i, j).state() == Cell::CellState::BLOCK || field->GetCell(i, j).state() == Cell::CellState::SOLID) {
+                  heights[i] = field->height() - j;
+                  j = field->height();
               }
           }
       }
+      
+      for (int i = 0; i < field->width() - 1; i++) {
+          bumpiness = bumpiness + abs(heights[i] - heights[i + 1]);
+      }
 
       cerr << "Agg: " << aggregateHeight << ". Comp: " << completedLines << ". Hole: " << holes << ". Bump: " << bumpiness << endl;
-      score = (-50) * aggregateHeight + (76) * completedLines + (-35) * holes +(-18) * bumpiness;
+      score = (-50) * aggregateHeight + (76) * completedLines + (-35) * holes + (-18) * bumpiness;
       return score;
+  }
+
+  int checkMove(Shape *shape, char side) const {
+      int move = 0;
+      bool checking = true;
+      while ( checking ) {
+          move++;
+          switch (side) {
+          case 'd':
+              shape->OneDown();
+              break;
+          case 'l':
+              shape->OneLeft();
+              break;
+          case 'r':
+              shape->OneRight();
+              break;
+          default:
+              cerr << "CHECKING AN INVALID SIDE. ABORT!" << endl;
+          }
+          checking = shape->IsOk();
+      }
+      move--;
+      return move;
   }
 
 };

@@ -87,16 +87,20 @@ class Shape {
   bool IsOk() {
       for (const Cell* cell : blocks_) {
           if (cell == nullptr) {
+              cerr << "Cell is nullptr" << endl;
               return false;
           }
           const Cell& c = *cell;
+          //cerr << "Cell(" << c.x() << "," << c.y() << ")";
           if (field_.IsOk(c)) {
-              
+              //cerr << " is good. " << endl;
           }
           else {
+              //cerr << " is NOT good. " << endl;
               return false;
           }
       }
+      //cerr << "MOVED." << endl;
       return true;
   }
 
@@ -280,64 +284,64 @@ class Shape {
      * playing field.
      * */
   void SetShape() {
-    blocks_ = vector<Cell*>();
-    switch (type_) {
+      blocks_ = vector<Cell*>();
+      switch (type_) {
       case ShapeType::I:
-        size_ = 4;
-        InitializeShape();
-        blocks_.push_back(&shape_[1][0]);
-        blocks_.push_back(&shape_[1][1]);
-        blocks_.push_back(&shape_[1][2]);
-        blocks_.push_back(&shape_[1][3]);
-        break;
-      case ShapeType::J:
-        size_ = 3;
-        InitializeShape();
-        blocks_.push_back(&shape_[0][0]);
-        blocks_.push_back(&shape_[1][0]);
-        blocks_.push_back(&shape_[1][1]);
-        blocks_.push_back(&shape_[1][2]);
-        break;
+          size_ = 4;
+          InitializeShape();
+          blocks_.push_back(&shape_[0][1]);
+          blocks_.push_back(&shape_[1][1]);
+          blocks_.push_back(&shape_[2][1]);
+          blocks_.push_back(&shape_[3][1]);
+          break;
       case ShapeType::L:
-        size_ = 3;
-        InitializeShape();
-        blocks_.push_back(&shape_[0][2]);
-        blocks_.push_back(&shape_[1][0]);
-        blocks_.push_back(&shape_[1][1]);
-        blocks_.push_back(&shape_[1][2]);
-        break;
+          size_ = 3;
+          InitializeShape();
+          blocks_.push_back(&shape_[2][0]);
+          blocks_.push_back(&shape_[0][1]);
+          blocks_.push_back(&shape_[1][1]);
+          blocks_.push_back(&shape_[2][1]);
+          break;
+      case ShapeType::J:
+          size_ = 3;
+          InitializeShape();
+          blocks_.push_back(&shape_[0][0]);
+          blocks_.push_back(&shape_[0][1]);
+          blocks_.push_back(&shape_[1][1]);
+          blocks_.push_back(&shape_[2][1]);
+          break;
       case ShapeType::O:
-        size_ = 2;
-        InitializeShape();
-        blocks_.push_back(&shape_[0][0]);
-        blocks_.push_back(&shape_[0][1]);
-        blocks_.push_back(&shape_[1][0]);
-        blocks_.push_back(&shape_[1][1]);
-        break;
-      case ShapeType::S:
-        size_ = 3;
-        InitializeShape();
-        blocks_.push_back(&shape_[0][1]);
-        blocks_.push_back(&shape_[0][2]);
-        blocks_.push_back(&shape_[1][0]);
-        blocks_.push_back(&shape_[1][1]);
-        break;
-      case ShapeType::T:
-        size_ = 3;
-        InitializeShape();
-        blocks_.push_back(&shape_[0][1]);
-        blocks_.push_back(&shape_[1][0]);
-        blocks_.push_back(&shape_[1][1]);
-        blocks_.push_back(&shape_[1][2]);
-        break;
+          size_ = 2;
+          InitializeShape();
+          blocks_.push_back(&shape_[0][0]);
+          blocks_.push_back(&shape_[1][0]);
+          blocks_.push_back(&shape_[0][1]);
+          blocks_.push_back(&shape_[1][1]);
+          break;
       case ShapeType::Z:
-        size_ = 3;
-        InitializeShape();
-        blocks_.push_back(&shape_[0][0]);
-        blocks_.push_back(&shape_[0][1]);
-        blocks_.push_back(&shape_[1][1]);
-        blocks_.push_back(&shape_[1][2]);
-        break;
+          size_ = 3;
+          InitializeShape();
+          blocks_.push_back(&shape_[0][0]);
+          blocks_.push_back(&shape_[0][0]);
+          blocks_.push_back(&shape_[1][1]);
+          blocks_.push_back(&shape_[2][1]);
+          break;
+      case ShapeType::T:
+          size_ = 3;
+          InitializeShape();
+          blocks_.push_back(&shape_[1][0]);
+          blocks_.push_back(&shape_[0][1]);
+          blocks_.push_back(&shape_[1][1]);
+          blocks_.push_back(&shape_[2][1]);
+          break;
+      case ShapeType::S:
+          size_ = 3;
+          InitializeShape();
+          blocks_.push_back(&shape_[1][0]);
+          blocks_.push_back(&shape_[2][0]);
+          blocks_.push_back(&shape_[0][1]);
+          blocks_.push_back(&shape_[1][1]);
+          break;
       default:
         size_ = 0;
         InitializeShape();
