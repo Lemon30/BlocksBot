@@ -40,22 +40,18 @@ class BotStarter {
         }
         cerr << "|" << endl;
     }*/
-
-    if (newShape.IsOk())
-        cerr << "MOVING LEFT " << endl;
-
-    Shape testShapeLeft(state.CurrentShape(), field, newShape.x(), newShape.y()); //?eklin kopyas?n? yarat
     
-    int testLeftMoves = checkMove(&testShapeLeft, 'l'); //Kaç kere sola gidebilir?
-    cerr << "Block can move left " << testLeftMoves << " times." << endl;
+    
 
-    for (int i = 0; i < testLeftMoves; i++) {
-        newShape.OneLeft();
-        moves.push_back(Move::MoveType::LEFT);
-    }
+    
 
     tita t = findBestMove(field, &newShape, state.CurrentShape());
     cerr << "Block should move right " << t.right << " times for the best move." << endl;
+
+    while (t.left > 0) {
+        moves.push_back(Move::MoveType::LEFT);
+        t.left--;
+    }
 
     while (t.right > 0) {
         moves.push_back(Move::MoveType::RIGHT);
@@ -74,6 +70,7 @@ class BotStarter {
   struct tita {
       int rotation;
       int right;
+      int left;
   };
 
   tita findBestMove(Field field, Shape *shape, Shape::ShapeType shapetype) const {      
@@ -81,48 +78,100 @@ class BotStarter {
       int rotations = 0;
       int bestscore = -999999;
       int totalRights = 0;
+      int totalLefts = 0;
 
+      //Gelen ?ekli 0, 1, 2 ve 3 kere döndür
       while (rotations < 4) {
-          
           cerr << "Testing block for " << rotations << "th rotation." << endl;
+
+          //Sola ne kadar gidebilecegini gormek icin seklin kopyasini yarat
+          Shape testShapeLeft(shapetype, field, shape->x(), shape->y());
+
+          //Sola gidecek sekli gerektigi kadar saga dondur
+          for (int r = 0; r < rotations; r++)
+              testShapeLeft.TurnRight();
+
+          //Seklin sola kac kere gidebilecegini hesapla
+          int testLeftMoves = checkMove(&testShapeLeft, 'l');
+          cerr << "Block can move left " << testLeftMoves << " times." << endl;
+
+          //Saga ne kadar gidebilecegini hesaplamak icin seklin kopyasini olustur
           Shape testShapeRight(shapetype, field, shape->x(), shape->y());
-          int testRightMoves = checkMove(&testShapeRight, 'r');
+
+          //Bu sekli de digerleri kadar dondur
           for (int r = 0; r < rotations; r++)
               testShapeRight.TurnRight();
+
+          //Saga gidecek sekli en sola gotur
+          for (int i = 0; i < testLeftMoves; i++)
+              testShapeRight.OneLeft();
+
+          //Saga gidecek sekil su an donmus olarak en solda duruyor
+
+          //Seklin saga ne kadar gidebilecegini hesapla
+          int testRightMoves = checkMove(&testShapeRight, 'r');
           cerr << "Block can move right a total of " << testRightMoves << " times." << endl;
+          
+          //Sekil ne kadar saga gidebiliyosa o kadar dene
           while (testRightMoves >= 0) {
               cerr << "Block will move right " << testRightMoves << " times to test." << endl;
+
+              //Sahanin kopyasini olustur
               Field newField(field.width(), field.height(), field.copyField());
+
+              //Seklin puanini kontrol etmek icin kopyasini olusur
               Shape ghostShape(shapetype, field, shape->x(), shape->y());
               for (int r = 0; r < rotations; r++)
                   ghostShape.TurnRight();
-              for (int i = 0; i < testRightMoves; i++) {
+              
+              //Ghostshape'i hizala
+              for (int i = 0; i < testLeftMoves; i++)
+                  ghostShape.OneLeft();
+              for (int i = 0; i < testRightMoves; i++)
                   ghostShape.OneRight();
-              }
+
+              //Seklin ne kadar asagiya inebilecegini gormek icin kopyala
               Shape testShapeDown(shapetype, field, ghostShape.x(), ghostShape.y());
+
+              //Bu sekli de ayni miktarda dondur
               for (int r = 0; r < rotations; r++)
                   testShapeDown.TurnRight();
+
+              //Seklin asagiya ne kadar gidebilecegini hesapla
               int testDownMoves = checkMove(&testShapeDown, 'd');
               cerr << "Tested down. This piece has to move down " << testDownMoves << " times." << endl;
-              for (int i = 0; i < testDownMoves; i++) {
+
+              //Ghostshape'i hesapladigimiz kadar asagiya indir
+              for (int i = 0; i < testDownMoves; i++)
                   ghostShape.OneDown();
-              }
+
+              //Kopyalamis oldugumuz sahaya bu sekli blok olarak yerlestir
               for (const Cell* cell : ghostShape.GetBlocks()) {
                   const Cell& c = *cell;
                   newField.SetCell(c.x(), c.y());
               }
+
+              //Sahanin puanini hesapla
               int score = evaluate(&newField);
+
+              //En yuksek puanli hareketi hatirla
               if (score > bestscore) {
                   bestscore = score;
+                  totalLefts = testLeftMoves;
                   totalRights = testRightMoves;
                   totalRotations = rotations;
               }
+              //Bir soldaki durum icin tekrar dene
               testRightMoves--;
           }
+          //Cevirip tekrar dene
           rotations++;
       }
+
+      //En iyi hareketi dondur
       tita t;
       t.right = totalRights;
+      t.left = totalLefts;
       t.rotation = totalRotations;
       return t;
   }
@@ -137,7 +186,7 @@ class BotStarter {
                   //cerr << "Agg height starts at " << field->height()-j << " for the " << i << "th column." << endl;
                   aggregateHeight = aggregateHeight + field->height() - j;
                   j = field->height();
-              }
+              } // SOLIDLERI ÇIKAR
           }
       }
       cerr << endl;
@@ -157,11 +206,9 @@ class BotStarter {
       for (int i = 0; i < field->width(); i++) {
           bool startChecking = false;
           for (int j = 0; j < field->height(); j++) {
-              if (field->GetCell(i, j).state() == Cell::CellState::BLOCK) {
-                  if (!startChecking)
+              if (field->GetCell(i, j).state() == Cell::CellState::BLOCK && !startChecking)
                       startChecking = true;
-              }
-              if (field->GetCell(i, j).state() == Cell::CellState::EMPTY)
+              if (field->GetCell(i, j).state() == Cell::CellState::EMPTY && startChecking)
                   holes++;
           }
       }
