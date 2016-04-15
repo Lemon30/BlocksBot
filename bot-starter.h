@@ -165,12 +165,7 @@ class BotStarter {
               cerr << "Testing for " << rotations << "rotations and " << testReverse << " rights: ";
               float score = evaluate(&newField);
 
-              for (int i = 0; i < newField.height(); i++) {
-                  for (int j = 0; j < newField.width(); j++) {
-                      cerr << "|" << newField.GetCell(j, i).AsString();
-                  }
-                  cerr << "|" << endl;
-              }
+              
 
               //En yuksek puanli hareketi hatirla
               if (score > bestscore) {
@@ -236,11 +231,11 @@ class BotStarter {
       for (int i = 0; i < field->height(); i++) {
           int checkFullRow = 0;
           for (int j = 0; j < field->width(); j++) {
-              if (field->GetCell(i, j).state() != Cell::CellState::EMPTY) {
+              if (field->GetCell(i, j).state() == Cell::CellState::EMPTY) {
                   checkFullRow++;
               }
           }
-          if (checkFullRow == field->width())
+          if (checkFullRow == 0)
               completedLines++;
       }
 
@@ -282,7 +277,13 @@ class BotStarter {
       }
 
       score = (-0.510066) * aggregateHeight + (0.760666) * completedLines + (-0.35663) * holes + (-0.184483) * bumpiness + (-0.2) * maxHeight + (-0.05) * blockades;
-      cerr << "Agg: " << aggregateHeight << ". Comp: " << completedLines << ". Hole: " << holes << ". Bump: " << bumpiness << ". Blok: " << blockades << ". SolidH: " << maxHeight << ". SolidH: " << solidHeight << ". Score" << score << endl;
+      cerr << "Agg: " << aggregateHeight << ". Comp: " << completedLines << ". Hole: " << holes << ". Bump: " << bumpiness << ". Blok: " << blockades << ". MaxH: " << maxHeight << ". SolidH: " << solidHeight << ". Score" << score << endl;
+      for (int i = 0; i < field->height(); i++) {
+          for (int j = 0; j < field->width(); j++) {
+              cerr << "|" << field->GetCell(j, i).AsString();
+          }
+          cerr << "|" << endl;
+      }
       return score;
   }
 
