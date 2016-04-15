@@ -40,13 +40,12 @@ class BotStarter {
         }
         cerr << "|" << endl;
     }*/
-    
-    
-
-    
-
+    cerr << "---------------------------------------------------" << endl;
     tita t = findBestMove(field, &newShape, state.CurrentShape());
+    cerr << "Block should move left " << t.left << " times for the best move." << endl;
     cerr << "Block should move right " << t.right << " times for the best move." << endl;
+    cerr << "Block should move turn right " << t.rotation << " times for the best move." << endl;
+    cerr << "This move has a score of " << t.score << endl;
 
     while (t.left > 0) {
         moves.push_back(Move::MoveType::LEFT);
@@ -71,18 +70,19 @@ class BotStarter {
       int rotation;
       int right;
       int left;
+      int score;
   };
 
   tita findBestMove(Field field, Shape *shape, Shape::ShapeType shapetype) const {      
       int totalRotations = 0;
-      int rotations = 0;
       int bestscore = -999999;
       int totalRights = 0;
       int totalLefts = 0;
 
       //Gelen ?ekli 0, 1, 2 ve 3 kere döndür
-      while (rotations < 4) {
-          cerr << "Testing block for " << rotations << "th rotation." << endl;
+      int rotations = 3;
+      while (rotations >= 0) {
+          //cerr << "Testing block for " << rotations << ". rotation." << endl;
 
           //Sola ne kadar gidebilecegini gormek icin seklin kopyasini yarat
           Shape testShapeLeft(shapetype, field, shape->x(), shape->y());
@@ -93,7 +93,7 @@ class BotStarter {
 
           //Seklin sola kac kere gidebilecegini hesapla
           int testLeftMoves = checkMove(&testShapeLeft, 'l');
-          cerr << "Block can move left " << testLeftMoves << " times." << endl;
+          //cerr << "Block can move left " << testLeftMoves << " times." << endl;
 
           //Saga ne kadar gidebilecegini hesaplamak icin seklin kopyasini olustur
           Shape testShapeRight(shapetype, field, shape->x(), shape->y());
@@ -110,11 +110,11 @@ class BotStarter {
 
           //Seklin saga ne kadar gidebilecegini hesapla
           int testRightMoves = checkMove(&testShapeRight, 'r');
-          cerr << "Block can move right a total of " << testRightMoves << " times." << endl;
+          //cerr << "Block can move right a total of " << testRightMoves << " times." << endl;
           
           //Sekil ne kadar saga gidebiliyosa o kadar dene
           while (testRightMoves >= 0) {
-              cerr << "Block will move right " << testRightMoves << " times to test." << endl;
+              //cerr << "Block will move right " << testRightMoves << " times to test." << endl;
 
               //Sahanin kopyasini olustur
               Field newField(field.width(), field.height(), field.copyField());
@@ -131,15 +131,20 @@ class BotStarter {
                   ghostShape.OneRight();
 
               //Seklin ne kadar asagiya inebilecegini gormek icin kopyala
-              Shape testShapeDown(shapetype, field, ghostShape.x(), ghostShape.y());
+              Shape testShapeDown(shapetype, field, shape->x(), shape->y());
 
               //Bu sekli de ayni miktarda dondur
               for (int r = 0; r < rotations; r++)
                   testShapeDown.TurnRight();
+              //Down shapei ghostla hizala
+              for (int i = 0; i < testLeftMoves; i++)
+                  testShapeDown.OneLeft();
+              for (int i = 0; i < testRightMoves; i++)
+                  testShapeDown.OneRight();
 
               //Seklin asagiya ne kadar gidebilecegini hesapla
               int testDownMoves = checkMove(&testShapeDown, 'd');
-              cerr << "Tested down. This piece has to move down " << testDownMoves << " times." << endl;
+              //cerr << "Tested down. This piece has to move down " << testDownMoves << " times." << endl;
 
               //Ghostshape'i hesapladigimiz kadar asagiya indir
               for (int i = 0; i < testDownMoves; i++)
@@ -165,7 +170,7 @@ class BotStarter {
               testRightMoves--;
           }
           //Cevirip tekrar dene
-          rotations++;
+          rotations--;
       }
 
       //En iyi hareketi dondur
@@ -173,6 +178,7 @@ class BotStarter {
       t.right = totalRights;
       t.left = totalLefts;
       t.rotation = totalRotations;
+      t.score = bestscore;
       return t;
   }
 
@@ -189,7 +195,8 @@ class BotStarter {
               } // SOLIDLERI ÇIKAR
           }
       }
-      cerr << endl;
+      //cerr << endl;
+
       int completedLines = 0;
       for (int i = 0; i < field->height(); i++) {
           int checkFullRow = 0;
@@ -228,8 +235,8 @@ class BotStarter {
           bumpiness = bumpiness + abs(heights[i] - heights[i + 1]);
       }
 
-      cerr << "Agg: " << aggregateHeight << ". Comp: " << completedLines << ". Hole: " << holes << ". Bump: " << bumpiness << endl;
       score = (-50) * aggregateHeight + (76) * completedLines + (-35) * holes + (-18) * bumpiness;
+      cerr << "Agg: " << aggregateHeight << ". Comp: " << completedLines << ". Hole: " << holes << ". Bump: " << bumpiness << ". Score" << score << endl;
       return score;
   }
 
