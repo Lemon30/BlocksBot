@@ -294,18 +294,18 @@ class Shape {
           blocks_.push_back(&shape_[2][1]);
           blocks_.push_back(&shape_[3][1]);
           break;
-      case ShapeType::L:
-          size_ = 3;
-          InitializeShape();
-          blocks_.push_back(&shape_[2][0]);
-          blocks_.push_back(&shape_[0][1]);
-          blocks_.push_back(&shape_[1][1]);
-          blocks_.push_back(&shape_[2][1]);
-          break;
       case ShapeType::J:
           size_ = 3;
           InitializeShape();
           blocks_.push_back(&shape_[0][0]);
+          blocks_.push_back(&shape_[0][1]);
+          blocks_.push_back(&shape_[1][1]);
+          blocks_.push_back(&shape_[2][1]);
+          break;
+      case ShapeType::L:
+          size_ = 3;
+          InitializeShape();
+          blocks_.push_back(&shape_[2][0]);
           blocks_.push_back(&shape_[0][1]);
           blocks_.push_back(&shape_[1][1]);
           blocks_.push_back(&shape_[2][1]);
@@ -318,13 +318,13 @@ class Shape {
           blocks_.push_back(&shape_[0][1]);
           blocks_.push_back(&shape_[1][1]);
           break;
-      case ShapeType::Z:
+      case ShapeType::S:
           size_ = 3;
           InitializeShape();
-          blocks_.push_back(&shape_[0][0]);
-          blocks_.push_back(&shape_[0][0]);
+          blocks_.push_back(&shape_[1][0]);
+          blocks_.push_back(&shape_[2][0]);
+          blocks_.push_back(&shape_[0][1]);
           blocks_.push_back(&shape_[1][1]);
-          blocks_.push_back(&shape_[2][1]);
           break;
       case ShapeType::T:
           size_ = 3;
@@ -334,13 +334,13 @@ class Shape {
           blocks_.push_back(&shape_[1][1]);
           blocks_.push_back(&shape_[2][1]);
           break;
-      case ShapeType::S:
+      case ShapeType::Z:
           size_ = 3;
           InitializeShape();
+          blocks_.push_back(&shape_[0][0]);
           blocks_.push_back(&shape_[1][0]);
-          blocks_.push_back(&shape_[2][0]);
-          blocks_.push_back(&shape_[0][1]);
           blocks_.push_back(&shape_[1][1]);
+          blocks_.push_back(&shape_[2][1]);
           break;
       default:
         size_ = 0;

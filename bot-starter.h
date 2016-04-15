@@ -127,7 +127,8 @@ class BotStarter {
           //cerr << "Block can move right a total of " << testRightMoves << " times." << endl;
           
           //Sekil ne kadar saga gidebiliyosa o kadar dene
-          while (testRightMoves >= 0) {
+          int testReverse = 0;
+          while (testReverse <= testRightMoves) {
               //cerr << "Block will move right " << testRightMoves << " times to test." << endl;
 
               //Sahanin kopyasini olustur
@@ -141,7 +142,7 @@ class BotStarter {
               //Ghostshape'i hizala
               for (int i = 0; i < testLeftMoves; i++)
                   ghostShape.OneLeft();
-              for (int i = 0; i < testRightMoves; i++)
+              for (int i = 0; i < testReverse; i++)
                   ghostShape.OneRight();
 
               //Seklin ne kadar asagiya inebilecegini gormek icin kopyala
@@ -153,7 +154,7 @@ class BotStarter {
               //Down shapei ghostla hizala
               for (int i = 0; i < testLeftMoves; i++)
                   testShapeDown.OneLeft();
-              for (int i = 0; i < testRightMoves; i++)
+              for (int i = 0; i < testReverse; i++)
                   testShapeDown.OneRight();
 
               //Seklin asagiya ne kadar gidebilecegini hesapla
@@ -171,18 +172,18 @@ class BotStarter {
               }
 
               //Sahanin puanini hesapla
-              cerr << "Testing for " << rotations << "rotations and " << testRightMoves << " rights: ";
+              cerr << "Testing for " << rotations << "rotations and " << testReverse << " rights: ";
               int score = evaluate(&newField);
 
               //En yuksek puanli hareketi hatirla
               if (score > bestscore) {
                   bestscore = score;
                   totalLefts = testLeftMoves;
-                  totalRights = testRightMoves;
+                  totalRights = testReverse;
                   totalRotations = rotations;
               }
               //Bir soldaki durum icin tekrar dene
-              testRightMoves--;
+              testReverse++;
           }
           //Cevirip tekrar dene
           rotations++;
@@ -206,7 +207,7 @@ class BotStarter {
               if (field->GetCell(i, j).state() == Cell::CellState::BLOCK || field->GetCell(i, j).state() == Cell::CellState::SOLID) {
                   //cerr << "Agg height starts at " << field->height()-j << " for the " << i << "th column." << endl;
                   aggregateHeight = aggregateHeight + field->height() - j;
-                  j = field->height();
+                  break;
               } // SOLIDLERI ÇIKAR
           }
       }
