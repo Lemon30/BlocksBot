@@ -72,12 +72,12 @@ class BotStarter {
       int rotation;
       int right;
       int left;
-      int score;
+      float score;
   };
 
   tita findBestMove(Field field, Shape *shape, Shape::ShapeType shapetype) const {      
       int totalRotations = 0;
-      int bestscore = -999999;
+      float bestscore = -999999;
       int totalRights = 0;
       int totalLefts = 0;
 
@@ -116,7 +116,7 @@ class BotStarter {
           
           //Sekil ne kadar saga gidebiliyosa o kadar dene
           int testReverse = 0;
-          while (testReverse < testRightMoves) {
+          while (testReverse <= testRightMoves) {
               //cerr << "Block will move right " << testRightMoves << " times to test." << endl;
 
               //Sahanin kopyasini olustur
@@ -126,6 +126,8 @@ class BotStarter {
               Shape ghostShape(shapetype, field, shape->x(), shape->y());
               for (int r = 0; r < rotations; r++)
                   ghostShape.TurnRight();
+
+              
               
               //Ghostshape'i hizala
               for (int i = 0; i < testLeftMoves; i++)
@@ -161,7 +163,14 @@ class BotStarter {
 
               //Sahanin puanini hesapla
               cerr << "Testing for " << rotations << "rotations and " << testReverse << " rights: ";
-              int score = evaluate(&newField);
+              float score = evaluate(&newField);
+
+              for (int i = 0; i < newField.height(); i++) {
+                  for (int j = 0; j < newField.width(); j++) {
+                      cerr << "|" << newField.GetCell(j, i).AsString();
+                  }
+                  cerr << "|" << endl;
+              }
 
               //En yuksek puanli hareketi hatirla
               if (score > bestscore) {
@@ -186,34 +195,56 @@ class BotStarter {
       return t;
   }
 
-  int evaluate(Field *field) const {
-      int score = -9999;
+  float evaluate(Field *field) const {
+      float score = -9999;
+
+      float maxHeight = 0;
+      for (int i = 0; i < field->width(); i++) {
+          for (int j = 0; j < field->height(); j++) {
+              if (field->GetCell(i, j).state() == Cell::CellState::BLOCK || field->GetCell(i, j).state() == Cell::CellState::SOLID) {
+                  if(maxHeight < field->height() - j)
+                    maxHeight = field->height() - j;
+                  break;
+              }
+          }
+      }
+
+      int solidHeight = 0;
+      for (int i = 0; i < field->width(); i++) {
+          for (int j = 0; j < field->height(); j++) {
+              if (field->GetCell(i, j).state() == Cell::CellState::SOLID) {
+                  solidHeight = field->height() - j;
+                  break;
+              }
+          }
+          break;
+      }
       
-      int aggregateHeight = 0;
+      float aggregateHeight = 0;
       for (int i = 0; i < field->width(); i++) {
           for (int j = 0; j < field->height(); j++) {
               if (field->GetCell(i, j).state() == Cell::CellState::BLOCK || field->GetCell(i, j).state() == Cell::CellState::SOLID) {
                   //cerr << "Agg height starts at " << field->height()-j << " for the " << i << "th column." << endl;
-                  aggregateHeight = aggregateHeight + field->height() - j;
+                  aggregateHeight = aggregateHeight + field->height() - j - solidHeight;
                   break;
               } // SOLIDLERI ÇIKAR
           }
       }
       //cerr << endl;
 
-      int completedLines = 0;
+      float completedLines = 0;
       for (int i = 0; i < field->height(); i++) {
           int checkFullRow = 0;
           for (int j = 0; j < field->width(); j++) {
-              if (field->GetCell(j, i).state() != Cell::CellState::EMPTY) {
+              if (field->GetCell(i, j).state() != Cell::CellState::EMPTY) {
                   checkFullRow++;
               }
           }
-          if (checkFullRow == 8)
+          if (checkFullRow == field->width())
               completedLines++;
       }
 
-      int holes = 0;
+      float holes = 0;
       for (int i = 0; i < field->width(); i++) {
           bool startChecking = false;
           for (int j = 0; j < field->height(); j++) {
@@ -224,7 +255,18 @@ class BotStarter {
           }
       }
 
-      int bumpiness = 0;
+      float blockades = 0;
+      for (int i = 0; i < field->width(); i++) {
+          bool startChecking = false;
+          for (int j = field->height(); j > 0; j--) {
+              if (field->GetCell(i, j).state() == Cell::CellState::EMPTY && !startChecking)
+                  startChecking = true;
+              if (field->GetCell(i, j).state() == Cell::CellState::BLOCK && startChecking)
+                  blockades++;
+          }
+      }
+
+      float bumpiness = 0;
       int heights[10] = {0};
       for (int i = 0; i < field->width(); i++) {
           for (int j = 0; j < field->height(); j++) {
@@ -239,8 +281,8 @@ class BotStarter {
           bumpiness = bumpiness + abs(heights[i] - heights[i + 1]);
       }
 
-      score = (-50) * aggregateHeight + (76) * completedLines + (-35) * holes + (-18) * bumpiness;
-      cerr << "Agg: " << aggregateHeight << ". Comp: " << completedLines << ". Hole: " << holes << ". Bump: " << bumpiness << ". Score" << score << endl;
+      score = (-0.510066) * aggregateHeight + (0.760666) * completedLines + (-0.35663) * holes + (-0.184483) * bumpiness + (-0.2) * maxHeight + (-0.05) * blockades;
+      cerr << "Agg: " << aggregateHeight << ". Comp: " << completedLines << ". Hole: " << holes << ". Bump: " << bumpiness << ". Blok: " << blockades << ". SolidH: " << maxHeight << ". SolidH: " << solidHeight << ". Score" << score << endl;
       return score;
   }
 
@@ -267,6 +309,35 @@ class BotStarter {
       move--;
       return move;
   }
+
+  void syncRotation(Shape *shape) {
+      for (int i = 0; i < shape->size(); i++) {
+          for (int j = 0; j < shape->size(); j++) {
+              
+          }
+      }
+  }/*
+  gor (int y = 0; y < size; y++)
+      for (int x = 0; x < size; x++) {
+          switch (this.shape[x][y].getState()) {
+          case EMPTY:
+              newShape.shape[x][y].setEmpty();
+              break;
+          case SHAPE:
+              newShape.shape[x][y].setShape();
+              newShape.blocks[counter++] = newShape.shape[x][y];
+              break;
+          case BLOCK:
+              newShape.shape[x][y].setBlock();
+              break;
+          case SOLID:
+              newShape.shape[x][y].setSolid();
+              break;
+          }
+      }
+
+  newShape.setBlockLocations();
+  return newShape;*/
 
 };
 

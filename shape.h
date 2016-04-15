@@ -126,7 +126,7 @@ class Shape {
   /**
    * Rotates the shape clockwise
    */
-  void TurnRight() {
+  /*void TurnRight() {
     vector<vector<Cell>> temp = TransposeShape();
     for (size_t x = 0; x < size_; ++x) {
       for (size_t y = 0; y < size_; ++y) {
@@ -135,6 +135,15 @@ class Shape {
     }
     SetBlockLocations();
     RecomputeBlocks();
+  }*/
+
+  void TurnRight() {
+      vector<vector<Cell>> temp = TransposeShape();
+      for (size_t x = 0; x < size_; ++x) {
+        shape_[x] = temp[size_ - x - 1];
+      }
+      SetBlockLocations();
+      RecomputeBlocks();
   }
 
   void OneDown() {
