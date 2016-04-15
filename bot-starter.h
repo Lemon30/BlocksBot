@@ -42,11 +42,29 @@ class BotStarter {
     }*/
     cerr << "---------------------------------------------------" << endl;
     tita t = findBestMove(field, &newShape, state.CurrentShape());
+    cerr << "Block should move turn right " << t.rotation << " times for the best move." << endl;
     cerr << "Block should move left " << t.left << " times for the best move." << endl;
     cerr << "Block should move right " << t.right << " times for the best move." << endl;
-    cerr << "Block should move turn right " << t.rotation << " times for the best move." << endl;
     cerr << "This move has a score of " << t.score << endl;
 
+    while (t.rotation > 0) {
+        moves.push_back(Move::MoveType::TURNRIGHT);
+        t.rotation--;
+    }
+
+    int vertical = t.left - t.right;
+    while (vertical != 0) {
+        if (vertical < 0) {
+            moves.push_back(Move::MoveType::RIGHT);
+            vertical++;
+        }
+        else if (vertical > 0) {
+            moves.push_back(Move::MoveType::LEFT);
+            vertical--;
+        }
+    }
+
+    /*
     while (t.left > 0) {
         moves.push_back(Move::MoveType::LEFT);
         t.left--;
@@ -55,12 +73,8 @@ class BotStarter {
     while (t.right > 0) {
         moves.push_back(Move::MoveType::RIGHT);
         t.right--;
-    }
+    }*/
 
-    while (t.rotation > 0) {
-        moves.push_back(Move::MoveType::TURNRIGHT);
-        t.rotation--;
-    }
 
     moves.push_back(Move::MoveType::DROP);
     return moves;
@@ -80,8 +94,8 @@ class BotStarter {
       int totalLefts = 0;
 
       //Gelen ?ekli 0, 1, 2 ve 3 kere döndür
-      int rotations = 3;
-      while (rotations >= 0) {
+      int rotations = 0;
+      while (rotations < 4) {
           //cerr << "Testing block for " << rotations << ". rotation." << endl;
 
           //Sola ne kadar gidebilecegini gormek icin seklin kopyasini yarat
@@ -157,6 +171,7 @@ class BotStarter {
               }
 
               //Sahanin puanini hesapla
+              cerr << "Testing for " << rotations << "rotations and " << testRightMoves << " rights: ";
               int score = evaluate(&newField);
 
               //En yuksek puanli hareketi hatirla
@@ -170,7 +185,7 @@ class BotStarter {
               testRightMoves--;
           }
           //Cevirip tekrar dene
-          rotations--;
+          rotations++;
       }
 
       //En iyi hareketi dondur
