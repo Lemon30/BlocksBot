@@ -64,18 +64,6 @@ class BotStarter {
         }
     }
 
-    /*
-    while (t.left > 0) {
-        moves.push_back(Move::MoveType::LEFT);
-        t.left--;
-    }
-
-    while (t.right > 0) {
-        moves.push_back(Move::MoveType::RIGHT);
-        t.right--;
-    }*/
-
-
     moves.push_back(Move::MoveType::DROP);
     return moves;
   }
@@ -128,7 +116,7 @@ class BotStarter {
           
           //Sekil ne kadar saga gidebiliyosa o kadar dene
           int testReverse = 0;
-          while (testReverse <= testRightMoves) {
+          while (testReverse < testRightMoves) {
               //cerr << "Block will move right " << testRightMoves << " times to test." << endl;
 
               //Sahanin kopyasini olustur
