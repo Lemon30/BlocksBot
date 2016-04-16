@@ -41,7 +41,7 @@ class BotStarter {
         cerr << "|" << endl;
     }*/
     cerr << "---------------------------------------------------" << endl;
-    tita t = findBestMove(field, &newShape, state.CurrentShape());
+    tita t = findBestMove(field, &newShape, state.CurrentShape(), true, state.NextShape());
     cerr << "Block should move turn right " << t.rotation << " times for the best move." << endl;
     cerr << "Block should move left " << t.left << " times for the best move." << endl;
     cerr << "Block should move right " << t.right << " times for the best move." << endl;
@@ -75,7 +75,7 @@ class BotStarter {
       float score;
   };
 
-  tita findBestMove(Field field, Shape *shape, Shape::ShapeType shapetype) const {      
+  tita findBestMove(Field field, Shape *shape, Shape::ShapeType shapetype, bool first, Shape::ShapeType nextshape) const {      
       int totalRotations = 0;
       float bestscore = -999999;
       int totalRights = 0;
@@ -105,8 +105,7 @@ class BotStarter {
               testShapeRight.TurnRight();
 
           //Saga gidecek sekli en sola gotur
-          for (int i = 0; i < testLeftMoves; i++)
-              testShapeRight.OneLeft();
+          move(&testShapeRight, 'l', testLeftMoves);
 
           //Saga gidecek sekil su an donmus olarak en solda duruyor
 
@@ -127,13 +126,9 @@ class BotStarter {
               for (int r = 0; r < rotations; r++)
                   ghostShape.TurnRight();
 
-              
-              
-              //Ghostshape'i hizala
-              for (int i = 0; i < testLeftMoves; i++)
-                  ghostShape.OneLeft();
-              for (int i = 0; i < testReverse; i++)
-                  ghostShape.OneRight();
+              //Ghostshape'i hizala.
+              move(&ghostShape, 'l', testLeftMoves);
+              move(&ghostShape, 'r', testReverse);
 
               //Seklin ne kadar asagiya inebilecegini gormek icin kopyala
               Shape testShapeDown(shapetype, field, shape->x(), shape->y());
@@ -142,18 +137,15 @@ class BotStarter {
               for (int r = 0; r < rotations; r++)
                   testShapeDown.TurnRight();
               //Down shapei ghostla hizala
-              for (int i = 0; i < testLeftMoves; i++)
-                  testShapeDown.OneLeft();
-              for (int i = 0; i < testReverse; i++)
-                  testShapeDown.OneRight();
+              move(&testShapeDown, 'l', testLeftMoves);
+              move(&testShapeDown, 'r', testReverse);
 
               //Seklin asagiya ne kadar gidebilecegini hesapla
               int testDownMoves = checkMove(&testShapeDown, 'd');
               //cerr << "Tested down. This piece has to move down " << testDownMoves << " times." << endl;
 
               //Ghostshape'i hesapladigimiz kadar asagiya indir
-              for (int i = 0; i < testDownMoves; i++)
-                  ghostShape.OneDown();
+              move(&ghostShape, 'd', testDownMoves);
 
               //Kopyalamis oldugumuz sahaya bu sekli blok olarak yerlestir
               for (const Cell* cell : ghostShape.GetBlocks()) {
@@ -165,15 +157,27 @@ class BotStarter {
               cerr << "Testing for " << rotations << "rotations and " << testReverse << " rights: ";
               float score = evaluate(&newField);
 
+              //En yuksek puanli hareketi hatirla
+              if(first){
+                  Shape nextShape(nextshape, newField, shape->x(), shape->y());
+                  tita next = findBestMove(newField, &nextShape, nextshape, false, nextshape);
+                  if (score + next.score > bestscore) {
+                      bestscore = score + next.score;
+                      totalLefts = testLeftMoves;
+                      totalRights = testReverse;
+                      totalRotations = rotations;
+                  }
+              }
+              else {
+                  if (score > bestscore) {
+                      bestscore = score;
+                      totalLefts = testLeftMoves;
+                      totalRights = testReverse;
+                      totalRotations = rotations;
+                  }
+              }
               
 
-              //En yuksek puanli hareketi hatirla
-              if (score > bestscore) {
-                  bestscore = score;
-                  totalLefts = testLeftMoves;
-                  totalRights = testReverse;
-                  totalRotations = rotations;
-              }
               //Bir soldaki durum icin tekrar dene
               testReverse++;
           }
@@ -278,12 +282,12 @@ class BotStarter {
 
       score = (-0.510066) * aggregateHeight + (0.760666) * completedLines + (-0.35663) * holes + (-0.184483) * bumpiness + (-0.2) * maxHeight + (-0.05) * blockades;
       cerr << "Agg: " << aggregateHeight << ". Comp: " << completedLines << ". Hole: " << holes << ". Bump: " << bumpiness << ". Blok: " << blockades << ". MaxH: " << maxHeight << ". SolidH: " << solidHeight << ". Score" << score << endl;
-      for (int i = 0; i < field->height(); i++) {
+      /*for (int i = 0; i < field->height(); i++) {
           for (int j = 0; j < field->width(); j++) {
               cerr << "|" << field->GetCell(j, i).AsString();
           }
           cerr << "|" << endl;
-      }
+      }*/
       return score;
   }
 
@@ -311,34 +315,23 @@ class BotStarter {
       return move;
   }
 
-  void syncRotation(Shape *shape) {
-      for (int i = 0; i < shape->size(); i++) {
-          for (int j = 0; j < shape->size(); j++) {
-              
+  void move(Shape *shape, char side, int amount) const {
+      for (int i = 0; i < amount; i++) {
+          switch (side) {
+          case 'd':
+              shape->OneDown();
+              break;
+          case 'l':
+              shape->OneLeft();
+              break;
+          case 'r':
+              shape->OneRight();
+              break;
+          default:
+              cerr << "CANT MOVE. ABORT!" << endl;
           }
       }
-  }/*
-  gor (int y = 0; y < size; y++)
-      for (int x = 0; x < size; x++) {
-          switch (this.shape[x][y].getState()) {
-          case EMPTY:
-              newShape.shape[x][y].setEmpty();
-              break;
-          case SHAPE:
-              newShape.shape[x][y].setShape();
-              newShape.blocks[counter++] = newShape.shape[x][y];
-              break;
-          case BLOCK:
-              newShape.shape[x][y].setBlock();
-              break;
-          case SOLID:
-              newShape.shape[x][y].setSolid();
-              break;
-          }
-      }
-
-  newShape.setBlockLocations();
-  return newShape;*/
+  }
 
 };
 
