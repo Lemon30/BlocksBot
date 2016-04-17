@@ -23,6 +23,7 @@ class BotParser {
 
   void Run() {
     BotState currentState;
+    bool predict = false;
 
     while (true) {
       string command;
@@ -40,7 +41,9 @@ class BotParser {
         long long part2;
         cin >> part1 >> part2;
 
-        vector<Move::MoveType> moves = bot_.GetMoves(currentState, part2);
+        predict = !predict;
+
+        vector<Move::MoveType> moves = bot_.GetMoves(currentState, part2, predict);
 
         if (moves.size() > 0) {
           for (Move::MoveType move : moves) {

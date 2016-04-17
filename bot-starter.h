@@ -26,7 +26,7 @@ class BotStarter {
    * @return : a list of moves to execute
    */
   vector<Move::MoveType> GetMoves(const BotState& state,
-                                  long long timeout) const {
+                                  long long timeout, bool predict) const {
     vector<Move::MoveType> moves;
 
     Field field = state.MyField(); // Sahan?n durumunu ö?ren
@@ -42,10 +42,10 @@ class BotStarter {
     }*/
     cerr << "---------------------------------------------------" << endl;
     tita t = findBestMove(field, &newShape, state.CurrentShape(), true, state.NextShape());
-    cerr << "Block should move turn right " << t.rotation << " times for the best move." << endl;
-    cerr << "Block should move left " << t.left << " times for the best move." << endl;
-    cerr << "Block should move right " << t.right << " times for the best move." << endl;
-    cerr << "This move has a score of " << t.score << endl;
+    //cerr << "Block should move turn right " << t.rotation << " times for the best move." << endl;
+    //cerr << "Block should move left " << t.left << " times for the best move." << endl;
+    //cerr << "Block should move right " << t.right << " times for the best move." << endl;
+    //cerr << "This move has a score of " << t.score << endl;
 
     while (t.rotation > 0) {
         moves.push_back(Move::MoveType::TURNRIGHT);
@@ -80,6 +80,8 @@ class BotStarter {
       float bestscore = -999999;
       int totalRights = 0;
       int totalLefts = 0;
+      float averageScore = 0;
+      int tries = 0;
 
       //Gelen ?ekli 0, 1, 2 ve 3 kere döndür
       int rotations = 0;
@@ -154,21 +156,31 @@ class BotStarter {
               }
 
               //Sahanin puanini hesapla
-              cerr << "Testing for " << rotations << "rotations and " << testReverse << " rights: ";
+              //cerr << "Testing for " << rotations << "rotations and " << testReverse << " rights: ";
               float score = evaluate(&newField);
 
               //En yuksek puanli hareketi hatirla
               if(first){
-                  Shape nextShape(nextshape, newField, shape->x(), shape->y());
-                  tita next = findBestMove(newField, &nextShape, nextshape, false, nextshape);
-                  if (score + next.score > bestscore) {
-                      bestscore = score + next.score;
-                      totalLefts = testLeftMoves;
-                      totalRights = testReverse;
-                      totalRotations = rotations;
+                  if (averageScore == 0)
+                      averageScore = score;
+                  else
+                      averageScore = ((averageScore * tries) + score) / (tries + 1);
+                  tries++;
+                  cerr << "AS=" << averageScore << " S=" << score;
+                  if(score >= averageScore){
+                      cerr << " -> Testing next shape" << endl;
+                      Shape nextShape(nextshape, newField, shape->x(), shape->y());
+                      tita next = findBestMove(newField, &nextShape, nextshape, false, nextshape);
+                      if (score + next.score > bestscore) {
+                          bestscore = score + next.score;
+                          totalLefts = testLeftMoves;
+                          totalRights = testReverse;
+                          totalRotations = rotations;
+                      }
+                  } else {
+                      cerr << " -> NOT testing next shape" << endl;
                   }
-              }
-              else {
+              } else {
                   if (score > bestscore) {
                       bestscore = score;
                       totalLefts = testLeftMoves;
@@ -281,7 +293,7 @@ class BotStarter {
       }
 
       score = (-0.510066) * aggregateHeight + (0.760666) * completedLines + (-0.35663) * holes + (-0.184483) * bumpiness + (-0.2) * maxHeight + (-0.05) * blockades;
-      cerr << "Agg: " << aggregateHeight << ". Comp: " << completedLines << ". Hole: " << holes << ". Bump: " << bumpiness << ". Blok: " << blockades << ". MaxH: " << maxHeight << ". SolidH: " << solidHeight << ". Score" << score << endl;
+      //cerr << "Agg: " << aggregateHeight << ". Comp: " << completedLines << ". Hole: " << holes << ". Bump: " << bumpiness << ". Blok: " << blockades << ". MaxH: " << maxHeight << ". SolidH: " << solidHeight << ". Score" << score << endl;
       /*for (int i = 0; i < field->height(); i++) {
           for (int j = 0; j < field->width(); j++) {
               cerr << "|" << field->GetCell(j, i).AsString();
