@@ -24,8 +24,11 @@ class BotParser {
   void Run() {
     BotState currentState;
     bool predict = false;
+    int round = 0;
 
     while (true) {
+        cerr << "Round: " << round << endl;
+        round++;
       string command;
       cin >> command;
       if (command == "settings") {
@@ -42,6 +45,56 @@ class BotParser {
         cin >> part1 >> part2;
 
         predict = !predict;
+        
+        //Get solid height
+        int solidHeight = 0;
+        for (int j = 0; j < currentState.MyField().height(); j++) {
+            if (currentState.MyField().GetCell(0, j).state() == Cell::CellState::SOLID) {
+                solidHeight = currentState.MyField().height() - j;
+                break;
+            }
+        }
+
+        int tCheckArrUp[3] = { 0 };
+        int tCheck = 0;
+        int column1 = 0;
+        int column2 = 0;
+        bool done = false;
+
+        for (int j = 0; j < currentState.MyField().height(); j++) {
+            if (done)
+                break;
+            for (int i = 0; i < currentState.MyField().width(); i++) {
+                if (done)
+                    break;
+                if (j == currentState.MyField().height() - solidHeight - 1) {
+                    if (i >= 2) {
+                        if (currentState.MyField().GetCell(i, j).state() == Cell::CellState::EMPTY) {
+                            tCheckArrUp[tCheck] = i;
+                            tCheck++;
+                            if ((tCheck == 1 || tCheck == 3) && (currentState.MyField().GetCell(i, j+1).state() == Cell::CellState::BLOCK)) {
+                                if (tCheck == 3) {
+                                    column1 = tCheckArrUp[1];
+                                    column2 = tCheckArrUp[2];
+                                    done = true;
+                                    cerr << "Chance for a t-spin at columns: " << column1 << column2 << endl;
+                                }
+                            }
+                            else if((tCheck == 2) && (currentState.MyField().GetCell(i, j+1).state() == Cell::CellState::EMPTY)) {
+
+                            }
+                            else {
+                                tCheck = 0;
+                            }
+                        }
+                        else {
+                            tCheck = 0;
+                        }
+                    }
+
+                }
+            }
+        }
 
         vector<Move::MoveType> moves = bot_.GetMoves(currentState, part2, predict);
 

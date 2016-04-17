@@ -40,7 +40,7 @@ class BotStarter {
         }
         cerr << "|" << endl;
     }*/
-    cerr << "---------------------------------------------------" << endl;
+    //cerr << "---------------------------------------------------" << endl;
     tita t = findBestMove(field, &newShape, state.CurrentShape(), true, state.NextShape());
     //cerr << "Block should move turn right " << t.rotation << " times for the best move." << endl;
     //cerr << "Block should move left " << t.left << " times for the best move." << endl;
@@ -148,19 +148,26 @@ class BotStarter {
 
               //Ghostshape'i hesapladigimiz kadar asagiya indir
               move(&ghostShape, 'd', testDownMoves);
-
+              bool dontScore = false;
               //Kopyalamis oldugumuz sahaya bu sekli blok olarak yerlestir
               for (const Cell* cell : ghostShape.GetBlocks()) {
                   const Cell& c = *cell;
+                  if (shapetype != Shape::ShapeType::I && c.x() == field.width()) {
+                      dontScore = true;
+                  }
                   newField.SetCell(c.x(), c.y());
               }
 
               //Sahanin puanini hesapla
               //cerr << "Testing for " << rotations << "rotations and " << testReverse << " rights: ";
-              float score = evaluate(&newField);
+              float score;
+              if (dontScore)
+                  score = -90;
+              else
+                  score = evaluate(&newField);
 
               //En yuksek puanli hareketi hatirla
-              if(first){/*
+              if(first && !dontScore){/*
                   if (averageScore == 0)
                       averageScore = score;
                   else
@@ -306,11 +313,12 @@ class BotStarter {
       float holeMultiplier = (-0.35663);
       float bumpMultiplier = (-0.184483);
 
+
       if (maxHeight >= 10) {
           aggHeightMultiplier = aggHeightMultiplier * (maxHeight / 10);
           compLineMultiplier = compLineMultiplier * (maxHeight / 10);
-          holeMultiplier = holeMultiplier / (maxHeight / 10);
-          bumpMultiplier = bumpMultiplier / (maxHeight / 10);
+          //holeMultiplier = holeMultiplier / (maxHeight / 10);
+          //bumpMultiplier = bumpMultiplier / (maxHeight / 10);
       }
 
       score = aggHeightMultiplier * aggregateHeight + compLineMultiplier * completedLines + holeMultiplier * holes + bumpMultiplier * bumpiness;// +(-0.4) * maxHeight + (-0.1) * blockades;
