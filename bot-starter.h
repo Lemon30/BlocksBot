@@ -160,7 +160,7 @@ class BotStarter {
               float score = evaluate(&newField);
 
               //En yuksek puanli hareketi hatirla
-              if(first){
+              if(first){/*
                   if (averageScore == 0)
                       averageScore = score;
                   else
@@ -179,6 +179,14 @@ class BotStarter {
                       }
                   } else {
                       cerr << " -> NOT testing next shape" << endl;
+                  }*/
+                  Shape nextShape(nextshape, newField, shape->x(), shape->y());
+                  tita next = findBestMove(newField, &nextShape, nextshape, false, nextshape);
+                  if (score + next.score > bestscore) {
+                      bestscore = score + next.score;
+                      totalLefts = testLeftMoves;
+                      totalRights = testReverse;
+                      totalRotations = rotations;
                   }
               } else {
                   if (score > bestscore) {
@@ -292,7 +300,20 @@ class BotStarter {
           bumpiness = bumpiness + abs(heights[i] - heights[i + 1]);
       }
 
-      score = (-0.510066) * aggregateHeight + (0.760666) * completedLines + (-0.35663) * holes + (-0.184483) * bumpiness + (-0.2) * maxHeight + (-0.05) * blockades;
+
+      float aggHeightMultiplier = (-0.510066);
+      float compLineMultiplier = (0.760666);
+      float holeMultiplier = (-0.35663);
+      float bumpMultiplier = (-0.184483);
+
+      if (maxHeight >= 10) {
+          aggHeightMultiplier = aggHeightMultiplier * (maxHeight / 10);
+          compLineMultiplier = compLineMultiplier * (maxHeight / 10);
+          holeMultiplier = holeMultiplier / (maxHeight / 10);
+          bumpMultiplier = bumpMultiplier / (maxHeight / 10);
+      }
+
+      score = aggHeightMultiplier * aggregateHeight + compLineMultiplier * completedLines + holeMultiplier * holes + bumpMultiplier * bumpiness;// +(-0.4) * maxHeight + (-0.1) * blockades;
       //cerr << "Agg: " << aggregateHeight << ". Comp: " << completedLines << ". Hole: " << holes << ". Bump: " << bumpiness << ". Blok: " << blockades << ". MaxH: " << maxHeight << ". SolidH: " << solidHeight << ". Score" << score << endl;
       /*for (int i = 0; i < field->height(); i++) {
           for (int j = 0; j < field->width(); j++) {
