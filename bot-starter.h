@@ -29,7 +29,7 @@ class BotStarter {
                                   long long timeout, bool predict) const {
     vector<Move::MoveType> moves;
 
-    Field field = state.MyField(); // Sahan?n durumunu ö?ren
+    Field field = state.MyField(); // Sahanin durumunu ögren
     Shape newShape(state.CurrentShape(), field, state.ShapeLocation().first, state.ShapeLocation().second); //Gelen ?ekli yarat
 
     /*
@@ -40,12 +40,18 @@ class BotStarter {
         }
         cerr << "|" << endl;
     }*/
-    //cerr << "---------------------------------------------------" << endl;
+    cerr << "---------------------------------------------------" << endl;
     tita t = findBestMove(field, &newShape, state.CurrentShape(), true, state.NextShape());
-    //cerr << "Block should move turn right " << t.rotation << " times for the best move." << endl;
-    //cerr << "Block should move left " << t.left << " times for the best move." << endl;
-    //cerr << "Block should move right " << t.right << " times for the best move." << endl;
-    //cerr << "This move has a score of " << t.score << endl;
+    cerr << "Block should move turn right " << t.rotation << " times for the best move." << endl;
+    cerr << "Block should move left " << t.left << " times for the best move." << endl;
+    cerr << "Block should move right " << t.right << " times for the best move." << endl;
+    if(t.extraMove == 0)
+        cerr << "Block should drop for the best move." << endl;
+    else
+        cerr << "Block should move down " << t.down << " times for the best move." << endl;
+
+    cerr << "The extra move is " << t.extraMove << endl;
+    cerr << "This move has a score of " << t.score << endl;
 
     while (t.rotation > 0) {
         moves.push_back(Move::MoveType::TURNRIGHT);
@@ -63,8 +69,34 @@ class BotStarter {
             vertical--;
         }
     }
-
-    moves.push_back(Move::MoveType::DROP);
+    if(t.extraMove == 0)
+        moves.push_back(Move::MoveType::DROP);
+    else {
+        if (t.extraMove == -1) {
+            //sola git
+            while (t.down > 0) {
+                moves.push_back(Move::MoveType::DOWN);
+                t.down--;
+            }
+            moves.push_back(Move::MoveType::LEFT);
+        }
+        else if(t.extraMove == 1) {
+            //saga git
+            while (t.down > 0) {
+                moves.push_back(Move::MoveType::DOWN);
+                t.down--;
+            }
+            moves.push_back(Move::MoveType::RIGHT);
+        }
+        else if (t.extraMove == 2) {
+            //saga dondur
+            while (t.down > 0) {
+                moves.push_back(Move::MoveType::DOWN);
+                t.down--;
+            }
+            moves.push_back(Move::MoveType::TURNRIGHT);
+        }
+    }
     return moves;
   }
 
@@ -72,7 +104,9 @@ class BotStarter {
       int rotation;
       int right;
       int left;
+      int down;
       float score;
+      int extraMove;
   };
 
   tita findBestMove(Field field, Shape *shape, Shape::ShapeType shapetype, bool first, Shape::ShapeType nextshape) const {      
@@ -80,8 +114,11 @@ class BotStarter {
       float bestscore = -999999;
       int totalRights = 0;
       int totalLefts = 0;
+      int totalDowns = 0;
       float averageScore = 0;
       int tries = 0;
+      int bonusMove = 0;
+      int bestBonusMove = 0;
 
       //Gelen ?ekli 0, 1, 2 ve 3 kere döndür
       int rotations = 0;
@@ -148,26 +185,70 @@ class BotStarter {
 
               //Ghostshape'i hesapladigimiz kadar asagiya indir
               move(&ghostShape, 'd', testDownMoves);
-              bool dontScore = false;
               //Kopyalamis oldugumuz sahaya bu sekli blok olarak yerlestir
               for (const Cell* cell : ghostShape.GetBlocks()) {
                   const Cell& c = *cell;
-                  if (shapetype != Shape::ShapeType::I && c.x() == field.width()) {
-                      dontScore = true;
-                  }
                   newField.SetCell(c.x(), c.y());
               }
 
               //Sahanin puanini hesapla
               //cerr << "Testing for " << rotations << "rotations and " << testReverse << " rights: ";
-              float score;
-              if (dontScore)
-                  score = -90;
-              else
-                  score = evaluate(&newField);
+              cerr << "Testing new" << endl;
+              float score = evaluate(&newField, false);
+              
+              float scoreLeft = -1111;
+              Shape finalLeftTest(shapetype, field, ghostShape.x(), ghostShape.y());
+              Field leftField(field.width(), field.height(), field.copyField());
+              finalLeftTest.OneLeft();
+              if (finalLeftTest.IsOk()) {
+                  for (const Cell* cell : finalLeftTest.GetBlocks()) {
+                      const Cell& c = *cell;
+                      leftField.SetCell(c.x(), c.y());
+                  }
+                  scoreLeft = evaluate(&leftField, false);
+              }
 
+              float scoreRight = -1111;
+              Shape finalRightTest(shapetype, field, ghostShape.x(), ghostShape.y());
+              Field rightField(field.width(), field.height(), field.copyField());
+              finalRightTest.OneRight();
+              if (finalRightTest.IsOk()) {
+                  for (const Cell* cell : finalRightTest.GetBlocks()) {
+                      const Cell& c = *cell;
+                      rightField.SetCell(c.x(), c.y());
+                  }
+                  scoreRight = evaluate(&rightField, false);
+              }
+
+              float scoreTurnRight = -1111;
+              Shape finalTurnRightTest(shapetype, field, ghostShape.x(), ghostShape.y());
+              Field turnRightField(field.width(), field.height(), field.copyField());
+              finalTurnRightTest.TurnRight();
+              if (finalTurnRightTest.IsOk()) {
+                  for (const Cell* cell : finalTurnRightTest.GetBlocks()) {
+                      const Cell& c = *cell;
+                      turnRightField.SetCell(c.x(), c.y());
+                  }
+                  scoreTurnRight = evaluate(&turnRightField, false);
+              }
+
+              bonusMove = 0;
+              if (scoreLeft > score || scoreRight > score || scoreTurnRight > score ) {
+                  bonusMove = -1;
+                  score = scoreLeft;
+                  if (scoreRight > scoreLeft || scoreTurnRight > scoreLeft){ 
+                      bonusMove = 1;
+                      score = scoreRight;
+                      if (scoreTurnRight > scoreRight) {
+                          bonusMove = 2;
+                          score = scoreTurnRight;
+                          cerr << "Turn for the win!" << endl;
+                      }
+                  }
+              }
+                  
               //En yuksek puanli hareketi hatirla
-              if(first && !dontScore){/*
+              if(first){/*
                   if (averageScore == 0)
                       averageScore = score;
                   else
@@ -194,13 +275,17 @@ class BotStarter {
                       totalLefts = testLeftMoves;
                       totalRights = testReverse;
                       totalRotations = rotations;
+                      bestBonusMove = bonusMove;
+                      totalDowns = testDownMoves;
                   }
               } else {
-                  if (score > bestscore) {
-                      bestscore = score;
+                  if (score + score> bestscore) {
+                      bestscore = score + score;
                       totalLefts = testLeftMoves;
                       totalRights = testReverse;
                       totalRotations = rotations;
+                      bestBonusMove = bonusMove;
+                      totalDowns = testDownMoves;
                   }
               }
               
@@ -216,12 +301,14 @@ class BotStarter {
       tita t;
       t.right = totalRights;
       t.left = totalLefts;
+      t.down = totalDowns;
       t.rotation = totalRotations;
       t.score = bestscore;
+      t.extraMove = bestBonusMove;
       return t;
   }
 
-  float evaluate(Field *field) const {
+  float evaluate(Field *field, bool print) const {
       float score = -9999;
 
       float maxHeight = 0;
@@ -314,21 +401,24 @@ class BotStarter {
       float bumpMultiplier = (-0.184483);
 
 
-      if (maxHeight >= 10) {
+      if (maxHeight >= 15) {
           aggHeightMultiplier = aggHeightMultiplier * (maxHeight / 10);
           compLineMultiplier = compLineMultiplier * (maxHeight / 10);
           //holeMultiplier = holeMultiplier / (maxHeight / 10);
           //bumpMultiplier = bumpMultiplier / (maxHeight / 10);
       }
 
-      score = aggHeightMultiplier * aggregateHeight + compLineMultiplier * completedLines + holeMultiplier * holes + bumpMultiplier * bumpiness;// +(-0.4) * maxHeight + (-0.1) * blockades;
-      //cerr << "Agg: " << aggregateHeight << ". Comp: " << completedLines << ". Hole: " << holes << ". Bump: " << bumpiness << ". Blok: " << blockades << ". MaxH: " << maxHeight << ". SolidH: " << solidHeight << ". Score" << score << endl;
-      /*for (int i = 0; i < field->height(); i++) {
-          for (int j = 0; j < field->width(); j++) {
-              cerr << "|" << field->GetCell(j, i).AsString();
+      score = aggHeightMultiplier * aggregateHeight + compLineMultiplier * completedLines + holeMultiplier * holes + bumpMultiplier * bumpiness;// + (-0.2) * maxHeight ; + (-0.1) * blockades
+      if(print){
+          cerr << "Agg: " << aggregateHeight << ". Comp: " << completedLines << ". Hole: " << holes << ". Bump: " << bumpiness << ". Blok: " << blockades << ". MaxH: " << maxHeight << ". SolidH: " << solidHeight << ". Score" << score << endl;
+          for (int i = 0; i < field->height(); i++) {
+              for (int j = 0; j < field->width(); j++) {
+                  cerr << "|" << field->GetCell(j, i).AsString();
+              }
+              cerr << "|" << endl;
           }
-          cerr << "|" << endl;
-      }*/
+      }
+      
       return score;
   }
 
