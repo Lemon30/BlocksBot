@@ -41,7 +41,7 @@ class BotStarter {
         cerr << "|" << endl;
     }*/
     cerr << "---------------------------------------------------" << endl;
-    tita t = findBestMove(field, &newShape, state.CurrentShape(), true, state.NextShape());
+    tita t = findBestMove(field, &newShape, state.CurrentShape(), false, state.NextShape());
     cerr << "Block should move turn right " << t.rotation << " times for the best move." << endl;
     cerr << "Block should move left " << t.left << " times for the best move." << endl;
     cerr << "Block should move right " << t.right << " times for the best move." << endl;
@@ -58,7 +58,7 @@ class BotStarter {
         t.rotation--;
     }
 
-    int vertical = t.left - t.right;
+    int vertical = t.left + t.right;
     while (vertical != 0) {
         if (vertical < 0) {
             moves.push_back(Move::MoveType::RIGHT);
@@ -69,7 +69,7 @@ class BotStarter {
             vertical--;
         }
     }
-    if(t.extraMove == 0)
+    if(t.extraMove != 0)
         moves.push_back(Move::MoveType::DROP);
     else {
         if (t.extraMove == -1) {
@@ -130,7 +130,7 @@ class BotStarter {
 
           //Sola gidecek sekli gerektigi kadar saga dondur
           for (int r = 0; r < rotations; r++)
-              testShapeLeft.TurnRight();
+              testShapeLeft.TurnLeft();
 
           //Seklin sola kac kere gidebilecegini hesapla
           int testLeftMoves = checkMove(&testShapeLeft, 'l');
@@ -154,7 +154,7 @@ class BotStarter {
           
           //Sekil ne kadar saga gidebiliyosa o kadar dene
           int testReverse = 0;
-          while (testReverse <= testRightMoves) {
+          while (testReverse >= testRightMoves) {
               //cerr << "Block will move right " << testRightMoves << " times to test." << endl;
 
               //Sahanin kopyasini olustur
@@ -381,7 +381,7 @@ class BotStarter {
 
       float bumpiness = 0;
       int heights[10] = {0};
-      for (int i = 0; i < field->width(); i++) {
+      for (int i = 0; i < field->height(); i++) {
           for (int j = 0; j < field->height(); j++) {
               if (field->GetCell(i, j).state() == Cell::CellState::BLOCK || field->GetCell(i, j).state() == Cell::CellState::SOLID) {
                   heights[i] = field->height() - j;
